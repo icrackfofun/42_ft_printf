@@ -6,74 +6,61 @@
 /*   By: psantos- <psantos-@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/05/02 15:08:46 by psantos-          #+#    #+#             */
-/*   Updated: 2025/05/02 18:23:18 by psantos-         ###   ########.fr       */
+/*   Updated: 2025/05/08 14:46:01 by psantos-         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "libftprintf.h"
 
-/*int	ft_strlen(char *str)
+int	add_len(int count, int *total_len)
 {
-	while (*str)
-		str++;
-	return (str);
-}*/
-
-int	ft_putstr(va_list *args)
-{
-	char	*ptr;
-	int		i;
-	
-	ptr = va_arg(*args, char *);
-	i = 0;
-	while (ptr[i])
-	{
-		write (1, &ptr[i], 1);
-		i++;
-	}
-	return (i);
+	if (count < 0)
+		return (-1);
+	*total_len += count;
+	return (*total_len);
 }
 
-int	ft_printarg(char c, va_list *args)
+int	ft_printarg(char c, va_list args)
 {
 	if (c == '%')
 		return (write(1, "%", 1));
 	if (c == 'c')
-		return (write(1, (char[1]){(char)va_arg(*args, int)}, 1));
+		return (write(1, (char[1]){(char)va_arg(args, int)}, 1));
 	if (c == 's')
-		return (ft_putstr(args));
+		return (ft_putstr(va_arg(args, char *)));
 	if (c == 'p')
-		return (ft_putptr(args));
+		return (ft_putptr(va_arg(args, void *)));
+	return (-1);
 }
 
 int	ft_printf(const char *string, ...)
 {
 	va_list	args;
+	int		total_len;
 	int		count;
+	int		i;
 	
 	count = 0;
+	total_len = 0;
+	i = 0;
 	va_start(args, string);
-	while(*string)
+	if (!string)
+		return (-1);
+	while(string[i])
 	{
-		if (*string != '%')
-		{
-			write(1, string, 1);
-			count++;
-			string++;
-		}
-		if (*string == '%')
-		{
-			count += ft_printarg(*(string + 1), &args);
-			string += 2;
-		}
+		if (string[i] != '%')
+			count = write(1, &string[i], 1);
+		if (string[i] == '%')
+			count = ft_printarg(string[++i], args);
+		if (add_len(count, &total_len) < 0)
+			return (-1);
+		i++;
 	}
 	va_end(args);
-	return (count);
+	return (total_len);
 }
 
 int main (void)
 {
-	//char *ptr = "A";
-
-	ft_printf("Hello my name is %% Pedro %c %s", 'c', "Borrega");
+	ft_printf("Hello my name is %% Pedro %c %s %p", 'c', "Borrega", (void *) "str");
 }
